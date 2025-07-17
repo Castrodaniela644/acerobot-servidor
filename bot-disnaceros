@@ -1,0 +1,6 @@
+git init
+git add .
+git commit -m "Bot DISNACEROS con integración de precios"
+git branch -M main
+git remote add origin https://github.com/tu_usuario/bot-disnaceros.git
+git push -u origin main
