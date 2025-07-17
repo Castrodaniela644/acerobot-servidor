@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-@app.route("/", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
     incoming_msg = request.json.get("Body", "").strip()
     if not incoming_msg:
