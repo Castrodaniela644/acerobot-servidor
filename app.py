@@ -7,16 +7,18 @@ load_dotenv()
 
 app = Flask(__name__)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Inicializa cliente OpenAI
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
     incoming_msg = request.values.get("Body", "").strip()
-    
+
     if not incoming_msg:
         return jsonify({"mensaje": "No se recibió ningún mensaje"}), 400
 
-    response = openai.ChatCompletion.create(
+    # Llamada a la nueva API de OpenAI
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "Eres un asistente útil que responde con jerga semiformal colombiana."},
