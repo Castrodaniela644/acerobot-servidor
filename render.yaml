@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: acerobot-servidor
+    env: python
+    buildCommand: ""
+    startCommand: bash start.sh
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
