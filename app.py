@@ -22,11 +22,8 @@ def webhook():
         ]
     )
 
-    reply = response.choices[0].message.content.strip()
-
-# ...
-
-return jsonify({"message": reply}), 200
+        reply = response.choices[0].message.content.strip()
+    return jsonify({"message": reply}), 200
 
 
 if __name__ == "__main__":
