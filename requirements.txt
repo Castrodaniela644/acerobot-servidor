@@ -1,4 +1,4 @@
 Flask
 python-dotenv
-openai==0.28
+openai>=1.0.0
 gunicorn
