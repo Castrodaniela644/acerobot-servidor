@@ -6,7 +6,7 @@ from openai import OpenAI
 load_dotenv()
 app = Flask(__name__)
 
-# Inicializar cliente OpenAI con clave
+# Cliente OpenAI con clave de entorno
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/webhook", methods=["POST"])
@@ -16,9 +16,9 @@ def webhook():
         return jsonify({"mensaje": "No se recibió ningún mensaje"}), 400
 
     try:
-        # Llamada al modelo GPT-4
+        # Solicitud a gpt-3.5-turbo
         response = client.chat.completions.create(
-            model="gpt-4-1106-preview",  # o usa "gpt-3.5-turbo", "gpt-4.1-mini", etc.
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Eres un asistente útil que responde con jerga semiformal colombiana."},
                 {"role": "user", "content": incoming_msg}
@@ -32,4 +32,4 @@ def webhook():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(deb
+    app.run(debug=True, host="0.0.0.0", port=port)
