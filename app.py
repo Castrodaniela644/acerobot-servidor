@@ -1,14 +1,14 @@
 import os
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI  # Asegúrate de importar así
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# Inicializa cliente OpenAI
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Inicializa cliente OpenAI (con nueva sintaxis)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
