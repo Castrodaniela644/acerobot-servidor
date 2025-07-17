@@ -23,7 +23,11 @@ def webhook():
     )
 
     reply = response.choices[0].message.content.strip()
-    return {"message": reply}
+
+# ...
+
+return jsonify({"message": reply}), 200
+
 
 if __name__ == "__main__":
     puerto = int(os.environ.get("PORT", 5000))
