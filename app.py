@@ -1,65 +1,60 @@
-import sistema_operativo
-from matriz import Matraz, pedido, jsonificar
-from dotenv import cargar_dotenv
+import os
+from flask import Flask, request, jsonify
+from dotenv import load_dotenv
 import openai
-import requests  # Para acceder a Sheet.best
+import requests
 
-cargar_dotenv()
+load_dotenv()
 
-aplicación = Matraz(__name__)
+app = Flask(__name__)
 
-# Cliente OpenAI con clave de entorno
-cliente = openai.OpenAI(clave_api=sistema_operativo.obtener_env("OPENAI_API_KEY"))
-
-# URL de Sheet.best (hoja de precios)
-SHEETBEST_URL = sistema_operativo.obtener_env("SHEETBEST_URL")
-
+# Clave de API de OpenAI y URL de precios desde entorno
+openai.api_key = os.getenv("OPENAI_API_KEY")
+SHEETBEST_URL = os.getenv("SHEETBEST_URL")
 
 def obtener_precios():
     try:
         respuesta = requests.get(SHEETBEST_URL)
         if respuesta.status_code == 200:
             return respuesta.json()
-        else:
-            return []
+        return []
     except Exception as e:
         print("Error al obtener precios:", e)
         return []
 
-
-@aplicación.ruta("/webhook", métodos=["CORREO"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
-    mensaje_entrante = pedido.valores.conseguir("cuerpo", "").banda()
+    mensaje_entrante = request.values.get("Body", "").strip()
+
     if not mensaje_entrante:
-        return jsonificar({"mensaje": "No se recibió ningún mensaje"}), 400
+        return jsonify({"mensaje": "No se recibió ningún mensaje"}), 400
 
     try:
-        # Consulta precios desde Sheet.best
         precios = obtener_precios()
 
-        # Genera una breve lista de productos como contexto (máximo 3 productos)
-        contexto_precios = ""
-        for i, item in enumerate(precios[:3]):
-            producto = item.get("producto", "Producto")
-            precio = item.get("precio", "precio")
-            contexto_precios += f"{producto}: {precio}\n"
+        contexto = ""
+        for i, producto in enumerate(precios[:3]):
+            nombre = producto.get("producto", "Producto")
+            precio = producto.get("precio", "Precio no disponible")
+            contexto += f"{nombre}: {precio}\n"
 
-        # Solicitud a GPT-3.5-turbo
-        respuesta = cliente.charlar.terminaciones.crear(
-            modelo="gpt-3.5-turbo",
-            mensajes=[
-                {"role": "sistema", "content": f"Eres un asistente útil que responde con jerga semiformal colombiana. Usa estos precios si te preguntan:\n{contexto_precios}"},
-                {"role": "usuario", "content": mensaje_entrante}
+        respuesta = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"Eres un asistente de ferretería colombiano que responde con jerga semiformal. Aquí tienes los precios más recientes:\n{contexto}"
+                },
+                {"role": "user", "content": mensaje_entrante}
             ]
         )
 
-        responder = respuesta.opciones[0].mensaje.contenido.banda()
-        return jsonificar({"mensaje": responder}), 200
+        salida = respuesta["choices"][0]["message"]["content"].strip()
+        return jsonify({"mensaje": salida}), 200
 
-    except Exception as mi:
-        return jsonificar({"error": str(mi)}), 500
-
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    puerto = int(sistema_operativo.relinar_conseguir("PUERTO", 5000))
-    aplicación.correr(depura=True, anfitrión="0.0.0.0", puerto=puerto)
+    puerto = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=puerto)
