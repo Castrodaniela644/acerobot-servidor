@@ -5,7 +5,6 @@ from openai import OpenAI
 
 load_dotenv()
 
-# Inicializa cliente OpenAI con nueva sintaxis
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
@@ -19,7 +18,7 @@ def webhook():
         return jsonify({"error": "Faltan datos"}), 400
 
     try:
-        # Construye el mensaje para ChatGPT
+        # Nueva forma de generar respuestas con OpenAI >=1.0.0
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -38,11 +37,7 @@ def webhook():
 
 @app.route("/", methods=["GET"])
 def home():
-    return "🟢 AceroBot está activo."
+    return "🟢 AceroBot activo."
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
