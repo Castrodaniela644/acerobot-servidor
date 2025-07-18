@@ -3,41 +3,50 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# Cargar variables de entorno
 load_dotenv()
 
+# Inicializar cliente OpenAI moderno
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    incoming_msg = request.form.get('Body')
-    sender = request.form.get('From')
+    incoming_msg = request.form.get("Body", "")
+    sender = request.form.get("From", "")
 
     if not incoming_msg or not sender:
-        return jsonify({"error": "Faltan datos"}), 400
+        return jsonify({"error": "Faltan datos requeridos"}), 400
 
     try:
-        # Nueva forma de generar respuestas con OpenAI >=1.0.0
-        completion = client.chat.completions.create(
+        respuesta = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Eres un asistente de ventas experto en materiales para construcción. Responde de forma clara, semiformal y con un emoji."},
+                {
+                    "role": "system",
+                    "content": (
+                        "Eres AceroBot, asesor experto en ventas de materiales de construcción. "
+                        "Responde de forma clara, amigable y semiformal. Agrega un emoji al final."
+                    )
+                },
                 {"role": "user", "content": incoming_msg}
-            ]
+            ],
+            temperature=0.7,
+            max_tokens=250
         )
 
-        response_text = completion.choices[0].message.content.strip()
+        mensaje = respuesta.choices[0].message.content.strip()
 
-        return jsonify({"respuesta": response_text})
+        return jsonify({"respuesta": mensaje})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/", methods=["GET"])
-def home():
-    return "🟢 AceroBot activo."
+def index():
+    return "🟢 AceroBot está en línea. ¡Listo para responder!"
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
