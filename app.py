@@ -13,11 +13,10 @@ app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    incoming_msg = request.form.get("Body", "")
-    sender = request.form.get("From", "")
+    incoming_msg = request.form.get("Body", "").strip()
 
-    if not incoming_msg or not sender:
-        return jsonify({"error": "Faltan datos requeridos"}), 400
+    if not incoming_msg:
+        return jsonify({"error": "Falta el campo Body con el mensaje del usuario"}), 400
 
     try:
         respuesta = client.chat.completions.create(
